@@ -1,0 +1,29 @@
+from openai import OpenAI
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+def generate_sql(question, schema):
+    prompt = f"""
+You are a SQL expert.
+
+Convert the following natural language question into SQL query.
+
+Schema:
+{schema}
+
+Question:
+{question}
+
+Only return SQL query.
+"""
+
+    response = client.chat.completions.create(
+        model="gpt-4.1-mini",
+        messages=[{"role": "user", "content": prompt}]
+    )
+
+    return response.choices[0].message.content.strip()
