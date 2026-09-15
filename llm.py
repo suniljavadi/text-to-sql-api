@@ -24,7 +24,7 @@ Only return SQL query.
 """
 
     response = client.chat.completions.create(
-        model="gpt-4.1-mini",
+        model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
         messages=[{"role": "user", "content": prompt}]
     )
 
