@@ -24,29 +24,39 @@ flowchart LR
 
 ## Technology Scope
 
-Python, FastAPI, LLM integration, and database access are evidenced by the source files. The repository does not include a `requirements.txt`, Docker configuration, test suite, or documented database schema, so exact dependency and deployment commands must be confirmed before use.
+Python, FastAPI, LLM integration, `pyodbc` database access, and environment-based configuration are evidenced by the source files. `requirements.txt`, `.env.example`, and focused read-only SQL tests are included; Docker configuration and a database fixture are not included.
 
 ## Local Exploration
 
-Create a virtual environment, install the dependencies required by the imports in the source files, configure the database and model credentials outside source control, then run the FastAPI entry point after confirming the application object name in `main.py`:
+Create a virtual environment, install the dependencies, configure the database, model credentials, and optional schema context outside source control, then run the FastAPI entry point:
 
 ```bash
 python -m venv .venv
 # Windows: .venv\Scripts\activate
 # macOS/Linux: source .venv/bin/activate
-pip install fastapi uvicorn
+pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
-The command assumes `main.py` exposes an ASGI object named `app`; verify the file before running. No production deployment is claimed.
+Set `OPENAI_API_KEY`, `DB_CONNECTION`, and optionally `DB_SCHEMA` in `.env`. The application imports successfully without an API key, but requests fail clearly until the key is configured. No production deployment is claimed.
+
+## Safety Boundary
+
+Generated SQL is validated before execution. Only single read-only `SELECT` or `WITH` statements are accepted; comments, multiple statements, mutation keywords, and administrative SQL are rejected. Database connections are closed in a `finally` block, and API failures return controlled HTTP errors instead of raw exception details.
+
+Run the focused tests with:
+
+```bash
+pytest -q
+```
 
 ## Security and Limitations
 
-Generated SQL should be treated as untrusted text. Before connecting this prototype to real data, add read-only credentials, SQL parsing and allow-list validation, row limits, timeout handling, input/output validation, authentication, audit logging, and tests. Do not place API keys or database passwords in source files.
+Generated SQL should be treated as untrusted text. The current guard permits only single read-only `SELECT` or `WITH` statements and rejects comments, multiple statements, mutations, and administrative SQL. Before connecting this prototype to real data, add row limits, timeout handling, authentication, and audit logging. Do not place API keys or database passwords in source files.
 
 ## Future Improvements
 
-Add a dependency manifest, `.env.example`, schema-aware retrieval, safe SQL validation, structured API schemas, error handling, tests, database fixtures, and an evaluation set that separates SQL validity from execution and semantic correctness.
+Add database fixtures, a formal SQL parser, structured API schemas, query timeout enforcement, authentication, and an evaluation set that separates SQL validity from execution and semantic correctness.
 
 ## Resume Relevance
 

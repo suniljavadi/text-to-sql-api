@@ -1,7 +1,9 @@
 from fastapi import FastAPI
-from app.llm import generate_sql
-from app.db import execute_query
-from app.schema import schema
+from fastapi import HTTPException
+
+from db import execute_query, validate_read_only_sql
+from llm import generate_sql
+from schema import schema
 
 app = FastAPI()
 
@@ -13,6 +15,7 @@ def home():
 def query_db(question: str):
     try:
         sql_query = generate_sql(question, schema)
+        validate_read_only_sql(sql_query)
         result = execute_query(sql_query)
 
         return {
@@ -21,5 +24,7 @@ def query_db(question: str):
             "result": result
         }
 
-    except Exception as e:
-        return {"error": str(e)}
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail="Query processing failed") from exc

@@ -4,9 +4,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
 def generate_sql(question, schema):
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError("OPENAI_API_KEY is not configured")
+    client = OpenAI(api_key=api_key)
     prompt = f"""
 You are a SQL expert.
 
