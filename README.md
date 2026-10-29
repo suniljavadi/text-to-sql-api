@@ -38,7 +38,7 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
-Set `OPENAI_API_KEY`, `DB_CONNECTION`, and optionally `DB_SCHEMA` in `.env`. The application imports successfully without an API key, but requests fail clearly until the key is configured. No production deployment is claimed.
+Set `OPENAI_API_KEY`, a unique `API_TOKEN` of at least 32 characters, `DB_CONNECTION`, and optionally `DB_SCHEMA` in `.env`. Protected query requests require `Authorization: Bearer <API_TOKEN>`; `/` remains a public informational endpoint. `QUERY_TIMEOUT_SECONDS` and `MAX_RESULT_ROWS` default to 15 seconds and 1,000 rows. The application imports without credentials, but query requests fail clearly until they are configured. Responses include an `X-Request-ID` header and structured request log fields. No production deployment is claimed.
 
 ## Safety Boundary
 
@@ -52,11 +52,11 @@ pytest -q
 
 ## Security and Limitations
 
-Generated SQL should be treated as untrusted text. The current guard permits only single read-only `SELECT` or `WITH` statements and rejects comments, multiple statements, mutations, and administrative SQL. Before connecting this prototype to real data, add row limits, timeout handling, authentication, and audit logging. Do not place API keys or database passwords in source files.
+Generated SQL should be treated as untrusted text. The current guard permits only single read-only `SELECT` or `WITH` statements and rejects comments, multiple statements, mutations, and administrative SQL. Authentication, query timeouts, and result row limits are enabled, but production use still requires a dedicated least-privilege read-only database account, SQL-parser-based validation, rate limiting, and audit logging. Do not place API keys or database passwords in source files; `.env` is ignored by Git.
 
 ## Future Improvements
 
-Add database fixtures, a formal SQL parser, structured API schemas, query timeout enforcement, authentication, and an evaluation set that separates SQL validity from execution and semantic correctness.
+Add database fixtures, SQL-parser-based validation, rate limiting, audit logging, and an evaluation set that separates SQL validity from execution and semantic correctness.
 
 ## Resume Relevance
 

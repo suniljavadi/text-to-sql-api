@@ -30,9 +30,16 @@ def execute_query(query):
     conn = get_connection()
     try:
         cursor = conn.cursor()
+        timeout_seconds = int(os.getenv("QUERY_TIMEOUT_SECONDS", "15"))
+        max_result_rows = int(os.getenv("MAX_RESULT_ROWS", "1000"))
+        if timeout_seconds < 1 or max_result_rows < 1:
+            raise RuntimeError("Query timeout and maximum result rows must be positive")
+        cursor.timeout = timeout_seconds
         cursor.execute(query)
         columns = [column[0] for column in cursor.description]
-        rows = cursor.fetchall()
+        rows = cursor.fetchmany(max_result_rows + 1)
+        if len(rows) > max_result_rows:
+            raise ValueError(f"Query exceeded the maximum result size of {max_result_rows} rows")
         return [dict(zip(columns, row)) for row in rows]
     finally:
         conn.close()
